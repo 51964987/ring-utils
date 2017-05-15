@@ -166,7 +166,6 @@ public class SQLHelper{
 			
 		}
 		sql.append(") ENGINE = MYISAM DEFAULT CHARACTER SET UTF8");
-		System.out.println(sql);
 		return sql.toString();
 	}
 }

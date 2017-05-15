@@ -1,5 +1,6 @@
 package ringutils.jdbc;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,10 +19,29 @@ public class JDBCUtil {
 	private static String username;
 	private static String password;
 	
-	static{
+	/**
+	 * 根据properties文件路径获取输入流
+	 * @param propertiesPath
+	 * @return 
+	 * @author ring
+	 * @date 2017年5月11日 下午11:19:09
+	 * @version V1.0
+	 */
+	public static InputStream getPropertiesInputStream(String propertiesPath){
+		return Thread.currentThread().getContextClassLoader().getResourceAsStream(propertiesPath);
+	}
+	
+	/**
+	 * 初始化参数
+	 * @param inStream 
+	 * @author ring
+	 * @date 2017年5月11日 下午11:17:13
+	 * @version V1.0
+	 */
+	public static void initPorperties(InputStream inStream){
 		try {
 			Properties p = new Properties();
-			p.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("jdbc.properties"));
+			p.load(inStream);
 			driver = p.getProperty("driver");
 			url = p.getProperty("url");
 			username = p.getProperty("username");

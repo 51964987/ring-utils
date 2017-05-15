@@ -121,13 +121,20 @@
 	    <artifactId>commons-lang3</artifactId>
 	    <version>3.4</version>
 	</dependency>
-	
-		<!-- UserAgent Library -->
-		<dependency>
-			<groupId>eu.bitwalker</groupId>
-			<artifactId>UserAgentUtils</artifactId>
-			<version>1.20</version>
-		</dependency>
+
+	<!-- UserAgent Library -->
+	<dependency>
+		<groupId>eu.bitwalker</groupId>
+		<artifactId>UserAgentUtils</artifactId>
+		<version>1.20</version>
+	</dependency>
+
+	<!-- Freemarker Library -->
+	<dependency>
+		<groupId>org.freemarker</groupId>
+		<artifactId>freemarker</artifactId>
+		<version>2.3.23</version>
+	</dependency>
 	
   </dependencies>
   
