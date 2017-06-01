@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +27,59 @@ import ringutils.jdbc.JDBCUtil;
  */
 public class JDBCMetaHelper {
 	private static Logger log = LoggerFactory.getLogger(JDBCMetaHelper.class);
-		
+
 	/**
-	 * 当前表元数据
+	 * 数据库信息
+	 * @return
+	 * @throws SQLException 
+	 * @author ring
+	 * @date 2017年5月18日 下午5:37:43
+	 * @version V1.0
+	 */
+	public static JSONObject tableInfo() throws SQLException{
+		Connection conn = null;
+		PreparedStatement ps = null;
+		JSONObject info = new JSONObject();
+		try {
+			conn = JDBCUtil.getConnection();
+			DatabaseMetaData dbmd = conn.getMetaData();
+			info.put("user_name",dbmd.getUserName());    
+			info.put("system_functions",dbmd.getSystemFunctions());    
+			info.put("time_date_functions",dbmd.getTimeDateFunctions());    
+			info.put("string_functions",dbmd.getStringFunctions());    
+			info.put("schema_term",dbmd.getSchemaTerm());    
+			info.put("url",dbmd.getURL());    
+			info.put("is_readonly",dbmd.isReadOnly());    
+			info.put("database_product_name",dbmd.getDatabaseProductName());    
+			info.put("database_product_version",dbmd.getDatabaseProductVersion());    
+			info.put("driver_name",dbmd.getDriverName());    
+			info.put("driver_version",dbmd.getDriverVersion()); 
+		} catch (Exception e) {
+			log.error("JDBC操作出错",e);
+			throw new SQLException("JDBC操作出错",e);
+		}finally{
+			JDBCUtil.free(null, conn, ps);
+		}
+		return info;
+	}
+	
+	/**
+	 * 全部表元数据
+	 * @param cls	指定返回类型
+	 * @return
+	 * @throws SQLException 
+	 * @author ring
+	 * @date 2017年5月12日 上午12:05:11
+	 * @version V1.0
+	 */
+	public static <T> List<T> listTables(Class<T> cls) throws SQLException{
+		return listTables(cls, null);
+	}
+	
+	/**
+	 * 表元数据
 	 * @param cls
-	 * @param tableName
+	 * @param tableName	為空時查全部表
 	 * @return
 	 * @throws SQLException 
 	 * @author ring
@@ -45,7 +94,7 @@ public class JDBCMetaHelper {
 		try {
 			conn = JDBCUtil.getConnection();
 			DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getTables(conn.getCatalog(), conn.getSchema(), tableName,new String[]{"TABLE"});
+			rs = metaData.getTables(conn.getCatalog(), "%", StringUtils.isNotEmpty(tableName)?tableName:"%", new String[] { "TABLE" });
 			list = new ArrayList<T>();
 			while (rs.next()) {
 				list.add(JDBCQueryHelper.setT(cls, rs));
@@ -60,7 +109,7 @@ public class JDBCMetaHelper {
 	}
 	
 	/**
-	 * 当前表的列元数据
+	 * 列元数据
 	 * @param cls
 	 * @param tableName
 	 * @return
@@ -91,8 +140,51 @@ public class JDBCMetaHelper {
 		return list;
 	}
 	
+	public static List<JSONObject> listColumns(String... tableNames) throws SQLException{
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		ResultSet pkrs = null;
+		List<JSONObject> list = null;
+		try {
+			conn = JDBCUtil.getConnection();
+			DatabaseMetaData metaData = conn.getMetaData();
+			
+			for(String tableName : tableNames){				
+				pkrs = metaData.getPrimaryKeys(conn.getCatalog(), null, tableName);
+				Map<String, List<JSONObject>> pkMap = new HashMap<String, List<JSONObject>>();
+				while(pkrs.next()){
+					JSONObject o = JDBCQueryHelper.setT(JSONObject.class, pkrs);
+					String key = o.getString("COLUMN_NAME");
+					List<JSONObject> olist = pkMap.get(key);
+					if(olist == null){
+						olist = new ArrayList<JSONObject>();
+					}
+					olist.add(o);
+					pkMap.put(key, olist);
+				}
+				
+				rs = metaData.getColumns(null, "%", tableName, "%");
+				list = new ArrayList<JSONObject>();
+				int index = 1;
+				while (rs.next()) {
+					JSONObject o = JDBCQueryHelper.setT(JSONObject.class, rs);
+					o.put("COLUMN_INDEX",index++);
+					o.put("COLUMN_PK", pkMap.get(o.getString("COLUMN_NAME"))!=null?"是":"");
+					list.add(o);
+				}
+			}
+		} catch (Exception e) {
+			log.error("JDBC操作出错",e);
+			throw new SQLException("JDBC操作出错",e);
+		}finally{
+			JDBCUtil.free(rs, conn, ps);
+		}
+		return list;
+	}
+	
 	/**
-	 * 当前表的主键元数据
+	 * 主键元数据
 	 * @param cls	指定返回类型
 	 * @param tableName
 	 * @return
@@ -124,7 +216,7 @@ public class JDBCMetaHelper {
 	}
 	
 	/**
-	 * 当前表的外键元数据
+	 * 外键元数据
 	 * @param cls	指定返回类型
 	 * @param tableName
 	 * @return
@@ -142,37 +234,6 @@ public class JDBCMetaHelper {
 			conn = JDBCUtil.getConnection();
 			DatabaseMetaData metaData = conn.getMetaData();
 			rs = metaData.getImportedKeys(conn.getCatalog(), conn.getSchema(), tableName);
-			list = new ArrayList<T>();
-			while (rs.next()) {
-				list.add(JDBCQueryHelper.setT(cls, rs));
-			}
-		} catch (Exception e) {
-			log.error("JDBC操作出错",e);
-			throw new SQLException("JDBC操作出错",e);
-		}finally{
-			JDBCUtil.free(rs, conn, ps);
-		}
-		return list;
-	}
-	
-	/**
-	 * 获取全部数据表元数据（不包含列元数据）
-	 * @param cls	指定返回类型
-	 * @return
-	 * @throws SQLException 
-	 * @author ring
-	 * @date 2017年5月12日 上午12:05:11
-	 * @version V1.0
-	 */
-	public static <T> List<T> listTables(Class<T> cls) throws SQLException{
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		List<T> list = null;
-		try {
-			conn = JDBCUtil.getConnection();
-			DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getTables(null, "%", "%", new String[] { "TABLE" });
 			list = new ArrayList<T>();
 			while (rs.next()) {
 				list.add(JDBCQueryHelper.setT(cls, rs));

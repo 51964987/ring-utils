@@ -3,6 +3,7 @@ package ringutils.poi.impl;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -13,6 +14,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,40 +27,31 @@ import ringutils.poi.PoiExcelService;
  * @date 2017年3月30日 上午9:31:36
  * @version V1.0
  */
-public class PoiExcelFactory{
+public class PoiExcelServiceFactory{
 	
-	private static Logger log = LoggerFactory.getLogger(PoiExcelFactory.class);
+	private static Logger log = LoggerFactory.getLogger(PoiExcelServiceFactory.class);
 	
 	/**
-	 * 获取工作薄
-	 * @param filename	文件路径
+	 * 获取Workbook实例
+	 * @param type
 	 * @return 
 	 * @author ring
-	 * @date 2017年3月15日 上午11:24:34
+	 * @date 2017年3月14日 下午2:53:34
 	 * @version V1.0
 	 */
-	public static PoiExcelService getPoiExcel(String filename) {
-		PoiExcelService service = null; 
-		InputStream is = null;
-		try {
-			is = new FileInputStream(filename);  //建立输入流
-			service = getPoiExcel(filename, is);
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error(e.getMessage(), e);
-			throw new RuntimeException(e.getMessage(), e);
-		}finally{
-			if(is!=null){
-				try {
-					is.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
+	public static PoiExcelService getInstance(String type){
+		PoiExcelService service = new PoiExcelServiceImpl(); 
+		//根据类型获取实例
+		if(type==null||type.equalsIgnoreCase(PoiExcelService.TYPE_HSSF)){
+			service.setWorkbook(new HSSFWorkbook());
+		}else if(type.equalsIgnoreCase(PoiExcelService.TYPE_XSSF)){
+			service.setWorkbook(new XSSFWorkbook());
+		}else if(type.equalsIgnoreCase(PoiExcelService.TYPE_SXSSF)){
+			service.setWorkbook(new SXSSFWorkbook(PoiExcelService.ROW_ACCESS));
 		}
 		return service;
 	}
-	
+
 	/**
 	 * 获取工作薄
 	 * @param filename	文件路径
@@ -67,8 +60,8 @@ public class PoiExcelFactory{
 	 * @date 2017年3月15日 上午11:24:34
 	 * @version V1.0
 	 */
-	public static PoiExcelService getPoiExcel(HttpServletRequest request) {
-		PoiExcelService service = null; 
+	public static List<PoiExcelService> getPoiExcel(HttpServletRequest request) {
+		List<PoiExcelService> list = new ArrayList<PoiExcelService>();
 		try {
 			
 			DiskFileItemFactory factory = new DiskFileItemFactory();
@@ -91,15 +84,40 @@ public class PoiExcelFactory{
 					if(!Pattern.matches("(?i).*\\.(?:xls|xlsx)", item.getName())){
 						throw new Exception("仅支持xls或xlsx文件");
 					}
-					service = getPoiExcel(item.getName(), item.getInputStream());
-					break;
+					
+					list.add(getPoiExcelService(item.getName(), item.getInputStream()));
 				}
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();
 			log.error(e.getMessage(), e);
 			throw new RuntimeException(e.getMessage(), e);
+		}
+		return list;
+	}
+	
+	/**
+	 * 获取工作薄
+	 * @param filename	文件路径
+	 * @return 
+	 * @author ring
+	 * @date 2017年3月15日 上午11:24:34
+	 * @version V1.0
+	 * @throws IOException 
+	 */
+	public static PoiExcelService getPoiExcelService(String filename) throws IOException {
+		PoiExcelService service = null; 
+		InputStream is = null;
+		try {
+			is = new FileInputStream(filename);  //建立输入流
+			service = getPoiExcelService(filename, is);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+			throw e;
+		}finally{
+			if(is!=null){
+				is.close();
+			}
 		}
 		return service;
 	}
@@ -114,13 +132,12 @@ public class PoiExcelFactory{
 	 * @date 2017年3月30日 上午11:03:52
 	 * @version V1.0
 	 */
-	public static PoiExcelService getPoiExcel(String filename,InputStream is) throws IOException{
-		PoiExcelService service = null;
+	public static PoiExcelService getPoiExcelService(String filename,InputStream is) throws IOException{
+		PoiExcelService service = new PoiExcelServiceImpl(); 
+		filename = filename.toLowerCase();
 		if(filename.endsWith("xls")) {
-			service = new HSSFWorkbookImpl();
 			service.setWorkbook(new HSSFWorkbook(is));
 		} else if(filename.endsWith("xlsx")) {
-			service = new XSSFWorkbookImpl();
 			service.setWorkbook(new XSSFWorkbook(is));
 		}else {
 	    	throw new IOException("读取的不是excel文件");

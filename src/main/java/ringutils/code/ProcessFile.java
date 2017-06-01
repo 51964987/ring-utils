@@ -9,6 +9,9 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import freemarker.core.ParseException;
 import freemarker.template.Configuration;
 import freemarker.template.MalformedTemplateNameException;
@@ -24,7 +27,8 @@ import freemarker.template.TemplateNotFoundException;
  * @version V1.0
  */
 public class ProcessFile {
-	
+
+	private static Logger log = LoggerFactory.getLogger(ProcessFile.class);
 	private Configuration cfg = null;  
     private Template template = null; 
     
@@ -34,8 +38,10 @@ public class ProcessFile {
 	private String javaPath;
 	/** WEB路径 */
 	private String webappPath;
+	/** RESOURCES路径 */
+	private String resourcesPath;
 
-	public ProcessFile(String templatePath,String charset) throws Exception{
+	public ProcessFile(){
 		//工程路径
 		String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
 		File targetFile = new File(path).getParentFile();
@@ -43,10 +49,24 @@ public class ProcessFile {
 		if("target".equalsIgnoreCase(targetFile.getName())){//Maven工程
 			this.javaPath = this.rootPath + File.separator + "src" + File.separator + "main"  + File.separator + "java" ;
 			this.webappPath = this.rootPath + File.separator + "src" + File.separator + "main"  + File.separator + "webapp" ;
+			this.resourcesPath = this.rootPath + File.separator + "src" + File.separator + "main"  + File.separator + "resources" ;
 		}else{
 			this.javaPath = this.rootPath + File.separator + "src";
 			this.webappPath = targetFile.getAbsolutePath();
+			this.javaPath = this.rootPath + File.separator + "resources";
 		}
+	}
+	
+	/**
+	 * 初始化配置
+	 * @param templatePath
+	 * @param charset
+	 * @throws IOException 
+	 * @author ring
+	 * @date 2017年5月16日 上午9:00:36
+	 * @version V1.0
+	 */
+	public void initConfig(String templatePath,String charset) throws IOException{
 		//加载模板
 		this.cfg = new Configuration(Configuration.VERSION_2_3_23);
 		//配置
@@ -59,7 +79,18 @@ public class ProcessFile {
 		//设置异常处理器 开发阶段使用DEBUG_HANDLER,生产阶段使用:RETHROW_HANDLER
 		cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 		////通过setSharedVariable可以将一些变量设置为公共的共享的变量，在任何使用该configuration获取template的模版中都可以访问共享变量  
-        //cfg.setSharedVariable("author", "Earl");  
+        //cfg.setSharedVariable("author", "Earl"); 
+	}
+	/**
+	 * 初始化配置--默认resources为模板路径
+	 * @param charset
+	 * @throws IOException 
+	 * @author ring
+	 * @date 2017年5月16日 上午9:00:36
+	 * @version V1.0
+	 */
+	public void initConfig(String charset) throws IOException{
+		this.initConfig(this.resourcesPath, charset);
 	}
 	
 	 /** 
@@ -92,6 +123,7 @@ public class ProcessFile {
             template.process(data, sw);  
         } catch (Exception e) {  
             e.printStackTrace();  
+			log.error(e.getMessage(),e);
         }finally{  
             try {  
                 sw.close();  
@@ -117,7 +149,7 @@ public class ProcessFile {
 		try{
 			File f = new File(outputPath);
 			if(f.exists()){
-				System.err.println("已存在文件："+f.getAbsolutePath());
+				log.info("已存在文件："+f.getAbsolutePath());
 				return false;
 			}
 			if(!f.getParentFile().exists()){
@@ -128,9 +160,10 @@ public class ProcessFile {
 			template=getTemplate(templateName);  
 			template.process(data, out);
 			out.flush();
-			System.err.println("生成文件："+outputPath);
+			log.info("生成文件："+outputPath);
 		}catch(Exception e){
 			e.printStackTrace();
+			log.error(e.getMessage(),e);
 			new File(outputPath).delete();
 			return false;
 		}finally{
@@ -139,6 +172,7 @@ public class ProcessFile {
 					out.close();
 				} catch (IOException e) {
 					e.printStackTrace();
+					log.error(e.getMessage(),e);
 				}
 			}
 		}
@@ -162,6 +196,14 @@ public class ProcessFile {
 	}
 	public void setJavaPath(String javaPath) {
 		this.javaPath = javaPath;
+	}
+
+	public String getResourcesPath() {
+		return resourcesPath;
+	}
+
+	public void setResourcesPath(String resourcesPath) {
+		this.resourcesPath = resourcesPath;
 	}
 			
 }

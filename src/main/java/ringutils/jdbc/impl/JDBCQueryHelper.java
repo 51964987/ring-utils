@@ -1,8 +1,5 @@
 package ringutils.jdbc.impl;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
@@ -10,20 +7,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ringutils.bean.BeanUtil;
 import ringutils.jdbc.JDBCUtil;
 import ringutils.jdbc.callback.SQLCallback;
-import ringutils.string.StringUtil;
 
 /**
  * 用于JDBC查询<br/>
@@ -235,52 +226,12 @@ public class JDBCQueryHelper {
 	 */
 	public static <T> T setT(Class<T> cls,ResultSet rs) throws Exception{
 		int count = rs.getMetaData().getColumnCount();
-		Object o = null;
-		
-		if(cls.isArray()){//Array
-			o = Array.newInstance(cls.getComponentType(), count);
-		}else if(cls.isAssignableFrom(Map.class)){//Map,默认子类HashMap
-			o = HashMap.class.newInstance();
-		}else if(cls.isInterface() && cls.getInterfaces()[0].isAssignableFrom(Collection.class)){//Connection
-			if(cls.isAssignableFrom(List.class)){//List,默认子类ArrayList
-				o = ArrayList.class.newInstance();
-			}
-			if(cls.isAssignableFrom(Set.class)){//Set,默认子类HashSet
-				o = HashSet.class.newInstance();
-			}
-		}else{//JavaBean,Map子类，Connection子类
-			o = cls.newInstance();
-			//最顶层父类
-			while(cls.getInterfaces()!=null&&cls.getInterfaces().length>0&&cls.getSuperclass()!=null){
-				cls = (Class<T>) cls.getInterfaces()[0];
-			}
-		}
-		
-		//实现接口
-		List<Class<?>> clsList = new ArrayList<Class<?>>();
-		Collections.addAll(clsList,o.getClass().getInterfaces());
-		
+		T o = BeanUtil.newInstance(cls, count);
 		for(int i=0;i<count;i++){
 			//获取值
 			String colsName = rs.getMetaData().getColumnName(i+1);  
             Object colsValue = rs.getObject(colsName);  
-            
-            //赋值
-            if(cls.isArray()){//Array
-            	Array.set(o, i, colsValue);
-            }else if(clsList.contains(Map.class)){//Map
-            	Method put = cls.getDeclaredMethod("put",new Class[]{Object.class,Object.class});
-            	put.invoke(o, new Object[]{colsName,colsValue});
-            }else if(cls.isInterface() && cls.getInterfaces()[0].isAssignableFrom(Collection.class)){//Connection
-            	Method put = cls.getDeclaredMethod("add",new Class[]{Object.class});
-            	put.invoke(o, new Object[]{colsValue});
-            }else{//JavaBean赋值
-            	Field field = cls.getDeclaredField(StringUtil.underline2capitalize(colsName));
-            	if(field!=null){
-            		field.setAccessible(true); //打开javabean的访问权限  
-            		field.set(o, colsValue);
-            	}
-            }            
+            BeanUtil.setT(o, colsName, colsValue, i);            
 		}
 		return (T) o;
 	}
