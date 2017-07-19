@@ -56,7 +56,7 @@ public class JavaBeanHelper {
 			data.put("pkeys", listPromaryKeys);
 			
 			//列
-			List<JSONObject> listColumns = JDBCMetaHelper.listColumns(JSONObject.class, data.get("tableName")+"");
+			List<JSONObject> listColumns = JDBCMetaHelper.listColumns(data.get("tableName")+"");
 			if(listColumns!=null&&listColumns.size()>0){
 				for(JSONObject col : listColumns){//下划线转驼峰
 					col.put("name", StringUtil.underline2capitalize(col.getString("COLUMN_NAME")));

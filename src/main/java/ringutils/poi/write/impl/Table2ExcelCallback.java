@@ -1,4 +1,4 @@
-package ringutils.poi.impl;
+package ringutils.poi.write.impl;
 
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
@@ -8,25 +8,32 @@ import org.apache.poi.ss.usermodel.Row;
 
 import com.alibaba.fastjson.JSONObject;
 
-import ringutils.poi.InsertRowCallback;
-import ringutils.poi.PoiExcelService;
-import ringutils.poi.style.PoiStyleUtil;
+import ringutils.poi.write.InsertRowCallback;
+import ringutils.poi.write.PoiWriteService;
+import ringutils.poi.write.style.PoiStyleUtil;
 
+/**
+ * 用于数据结构导出
+ *  
+ * @author ring
+ * @date 2017年7月16日 下午1:44:28
+ * @version V1.0
+ */
 public class Table2ExcelCallback implements InsertRowCallback{
 
 	public static String[] titls = {"数据库中文名","数据库英文名","表中文名","表英文名","栏位数","字段名称","字段注释","字段类型","字段长度","主键","备注"};
 	public static String[] fields = {"TABLE_CAT_CHN","TABLE_CAT","TABLE_NAME_CHN","TABLE_NAME","COLUMN_INDEX","COLUMN_NAME","REMARKS","TYPE_NAME","COLUMN_SIZE","COLUMN_PK","备注"};
-	private PoiExcelService excelService;
+	private PoiWriteService excelService;
 	/**
 	 * {TABLE_CAT:xxx,tablename1:xxx,tablename2:xxx}
 	 */
 	private JSONObject tableMap;
-	public Table2ExcelCallback(PoiExcelService excelService, JSONObject tableMap) {
+	public Table2ExcelCallback(PoiWriteService excelService, JSONObject tableMap) {
 		super();
 		this.excelService = excelService;
 		this.tableMap = tableMap;
 	}
-	public Table2ExcelCallback(PoiExcelService excelService) {
+	public Table2ExcelCallback(PoiWriteService excelService) {
 		super();
 		this.excelService = excelService;
 	}
@@ -35,9 +42,9 @@ public class Table2ExcelCallback implements InsertRowCallback{
 		
 	}
 
-	public void cellCallback(Cell cell, Object value, Object data) {
+	public void cellCallback(int rownum,Cell cell, Object value, Object data) {
 		Font font = PoiStyleUtil.font(excelService.getWorkbook(), HSSFColor.BLACK.index);
-		if(cell.getRowIndex() == 0 ){//标题
+		if(rownum == 0 ){//标题
 			cell.setCellStyle(PoiStyleUtil.style(excelService.getWorkbook(), CellStyle.ALIGN_CENTER, HSSFColor.YELLOW.index, CellStyle.BORDER_THIN, HSSFColor.BLACK.index, font));
 			cell.getSheet().createFreezePane(0, 1, 0, 1);//首行冻结
 		}else{

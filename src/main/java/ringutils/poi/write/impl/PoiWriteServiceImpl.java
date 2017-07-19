@@ -1,4 +1,4 @@
-package ringutils.poi.impl;
+package ringutils.poi.write.impl;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -33,19 +32,19 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONObject;
 
-import ringutils.bean.BeanUtil;
-import ringutils.poi.InsertRowCallback;
-import ringutils.poi.PoiExcelService;
-import ringutils.poi.ReadRowCallback;
+import ringutils.poi.write.InsertRowCallback;
+import ringutils.poi.write.PoiWriteService;
 import ringutils.string.StringUtil;
 
 @SuppressWarnings({"unchecked","rawtypes"})
-public class PoiExcelServiceImpl implements PoiExcelService {
+public class PoiWriteServiceImpl implements PoiWriteService {
 	
-	private Logger log = LoggerFactory.getLogger(PoiExcelServiceImpl.class);
+	private Logger log = LoggerFactory.getLogger(PoiWriteServiceImpl.class);
 	private Workbook workbook;
-	private int pageSize=1000000;
-	private int count;
+	private int pageSize=1000000;//每一百万数据分页
+	private int count;			//总数据，可能包括标题
+	private int rownum;
+	private int pageOutCount;	//输出数据总数，不包括标题，用于insertPage方法
 	private Map<String, JSONObject> sheetMap = new HashMap<String, JSONObject>(); 
 	
 	public DocumentSummaryInformation getHssfDocumentInformation(){
@@ -72,6 +71,7 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 		sheet = this.workbook.getSheet(sheetJson.getString("sheetname"))==null?this.workbook.createSheet(sheetJson.getString("sheetname")):this.workbook.getSheet(sheetJson.getString("sheetname"));
 		
 		if(sheet.getLastRowNum() == this.pageSize){//下一页
+			this.rownum=0;
 			if(sheetJson.getIntValue("page")==1){
 				this.workbook.setSheetName(this.workbook.getSheetIndex(sheetJson.getString("sheetname")), sheetname+"1");
 			}
@@ -83,15 +83,16 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 		
 		return sheet;
 	}
-	
+		
 	public <T> void insertPage(String sheetname,List<T> list,String[] fields,String[] titls,InsertRowCallback callback) throws Exception{
 		if(list != null && list.size() > 0){
 			for(int i=0;i<list.size();i++){
 				Sheet sheet = createOrGetSheet(sheetname);
-				if(sheet.getLastRowNum() == 0){
+				if(this.rownum == 0){
 					this.insertRow(sheet, titls, null, callback);//插入标题
 				}
 				this.insertRow(sheet, list.get(i), fields, callback);//插入行
+				this.pageOutCount+=1;
 			}
 		}
 	}
@@ -110,8 +111,7 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 	}	
 	private <T> void insertRow(Sheet sheet, T data, String[] fields,InsertRowCallback callback) throws Exception {
 		//创建行
-		int rownum = sheet.getLastRowNum();
-		Row row = sheet.getRow(rownum)==null?sheet.createRow(rownum):sheet.createRow(rownum+1);
+		Row row = sheet.getRow(rownum)==null?sheet.createRow(rownum):sheet.createRow(++rownum);
 		if(callback!=null){//行回调
 			callback.rowCallback(row);
 		}
@@ -177,90 +177,44 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 	        
 	        Cell cell = row.createCell(i);
 	        if(callback!=null){	        	
-	        	callback.cellCallback(cell, value,data);
+	        	callback.cellCallback(this.rownum,cell, value,data);
 	        }else{
 	        	cell.setCellValue(value+"");
 	        }
 		}
 		
 		//总数
+		this.rownum+=1;
 		this.count+=1;
 		
 	}
 	
-	public <T> List<T> read(int sheetindex, int[] cells, String[] fields, Class<T> cls)  throws Exception{
-		return read(this.getWorkbook().getSheetAt(sheetindex), cells, fields,cls, null);
-	}
-
-	public <T> List<T> read(String sheetname, int[] cells, String[] fields, Class<T> cls)  throws Exception{
-		return read(this.getWorkbook().getSheet(sheetname), cells, fields,cls, null);
-	}
-
-	public <T> List<T> read(Sheet sheet, int[] cells, String[] fields, Class<T> cls)  throws Exception{
-		return read(sheet, cells, fields,cls, null);
-	}
-
-	public <T> List<T> read(int sheetindex, int[] cells, String[] fields, ReadRowCallback<T> callback) throws Exception {
-		return read(this.getWorkbook().getSheetAt(sheetindex), cells, fields,null, callback);
-	}
-
-	public <T> List<T> read(String sheetname, int[] cells,String[] fields, ReadRowCallback<T> callback) throws Exception {
-		return read(this.getWorkbook().getSheet(sheetname), cells, fields,null, callback);
-	}
-	
-	public <T> List<T> read(Sheet sheet, int[] cells,String[] fields, ReadRowCallback<T> callback) throws Exception {
-		return read(sheet, cells, fields,null, callback);
-	}
-
-	private <T> List<T> read(Sheet sheet, int[] cells, String[] fields, Class<T> cls, ReadRowCallback<T> callback) throws Exception {
-		List<T> result = new ArrayList<T>();
-		Iterator<Row> rows = sheet.rowIterator();
-		try {
-			while(rows.hasNext()){
-				Row row = rows.next();
-				
-				if(callback != null){
-					if(!callback.cellBefore(row)){
-						continue;
-					}
-				}
-				
-				if(cls == null){
-					ParameterizedType parameterizedType = (ParameterizedType) callback.getClass().getGenericInterfaces()[0];
-					cls = (Class<T>) parameterizedType.getActualTypeArguments()[0];
-				}
-
-				T o = BeanUtil.newInstance(cls, cells.length);
-				
-				for(int i=0;i<cells.length;i++){
-					Cell cell = row.getCell(i);
-					if(cell==null){
-						continue;
-					}
-					String key = null;
-					if(fields!=null&&fields.length>0){						
-						key = fields[i];
-					}
-					Object value = getCellStringValue(cell);
-					BeanUtil.setT(o, key, value, i);
-				}
-				
-				boolean isAdd = true;
-				if(callback != null){
-					isAdd = callback.cellAfter(row, o);
-				}
-				
-				if(isAdd){					
-					result.add(o);
-				}
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage(),e);
-			throw e;
+	public void insertRowByStringArray(Sheet sheet, String[] data,InsertRowCallback callback) throws Exception {
+		//创建行
+		Row row = sheet.getRow(rownum)==null?sheet.createRow(rownum):sheet.createRow(++rownum);
+		if(callback!=null){//行回调
+			callback.rowCallback(row);
 		}
-		return result;
+		
+		//插入数据
+		for(int i=0;i<data.length;i++){
+						
+			String value = data[i];
+						
+			Cell cell = row.createCell(i);
+			if(callback!=null){	        	
+				callback.cellCallback(this.rownum,cell, value,data);
+			}else{
+				cell.setCellValue(value+"");
+			}
+		}
+		
+		//总数
+		this.rownum+=1;
+		this.count+=1;
+		
 	}
-	
+		
 	/**
 	 * 读取单元格数据
 	 * 可根据需要重写
@@ -337,7 +291,6 @@ public class PoiExcelServiceImpl implements PoiExcelService {
     }
 
 	public void output(String filepath) throws IOException{
-		//long start = System.currentTimeMillis();
 		FileOutputStream os = null;
 		try { 
 			if(filepath.toLowerCase().endsWith("xls")){
@@ -356,9 +309,10 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 			if(!file.getParentFile().exists()){
 				file.getParentFile().mkdirs();
 			}
+			long start = System.currentTimeMillis();
 			os = new FileOutputStream(filepath);
 			this.workbook.write(os);
-			//printLogTime(log,start, "生成文件成功");
+			log.info("生成文件成功，耗时"+(float)(System.currentTimeMillis()-start)/1000+"秒，"+filepath);
 		} catch (Exception e) {
 			log.error("生成文件失败："+e.getMessage(),e);
 			throw new IOException("生成文件失败："+e.getMessage(), e);
@@ -393,7 +347,11 @@ public class PoiExcelServiceImpl implements PoiExcelService {
 	public int getCount() {
 		return count;
 	}
+	public int getPageOutCount() {
+		return pageOutCount;
+	}
 	public Map<String, JSONObject> getSheetMap() {
 		return sheetMap;
 	}
+
 }

@@ -42,9 +42,19 @@ public class ProcessFile {
 	private String resourcesPath;
 
 	public ProcessFile(){
+		super();
 		//工程路径
 		String path = Thread.currentThread().getContextClassLoader().getResource("").getPath();
 		File targetFile = new File(path).getParentFile();
+		this.init(targetFile);
+	}
+	
+	public ProcessFile(File targetFile){
+		super();
+		this.init(targetFile);
+	}
+	
+	private void init(File targetFile){
 		this.rootPath = targetFile.getParent();
 		if("target".equalsIgnoreCase(targetFile.getName())){//Maven工程
 			this.javaPath = this.rootPath + File.separator + "src" + File.separator + "main"  + File.separator + "java" ;
@@ -53,7 +63,7 @@ public class ProcessFile {
 		}else{
 			this.javaPath = this.rootPath + File.separator + "src";
 			this.webappPath = targetFile.getAbsolutePath();
-			this.javaPath = this.rootPath + File.separator + "resources";
+			this.resourcesPath = this.rootPath + File.separator + "resources";
 		}
 	}
 	

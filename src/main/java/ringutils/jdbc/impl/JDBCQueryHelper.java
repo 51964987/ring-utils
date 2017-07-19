@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import ringutils.bean.BeanUtil;
 import ringutils.jdbc.JDBCUtil;
 import ringutils.jdbc.callback.SQLCallback;
+import ringutils.number.ProgrssUtil;
 
 /**
  * 用于JDBC查询<br/>
@@ -98,7 +99,6 @@ public class JDBCQueryHelper {
 		listWithCallback(sql, null,sqlCallback);
 	}
 	
-	
 	/**
 	 * 查询SQL并调用回调方法进行处理数据
 	 * @param sql	SQL语句
@@ -113,33 +113,67 @@ public class JDBCQueryHelper {
 	 */
 	public static <T> void listWithCallback(String sql,Object[] vals,SQLCallback<T> sqlCallback) throws SQLException{
 		Connection conn = null;
+		PreparedStatement countps = null;
 		PreparedStatement ps = null;
+		ResultSet countrs = null;
 		ResultSet rs = null;
 		int max = 10000;
+		double counts = 0; 
 		try {
-			conn = JDBCUtil.getConnection();
-			conn.setAutoCommit(false);
-			ps=conn.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
-			ps.setFetchSize(max);
-			JDBCUtil.setPSObject(ps, vals);
-			rs = ps.executeQuery();
 			
 			List<T> list = new ArrayList<T>();
 			//获取泛型类型
 			Type type = sqlCallback.getClass().getGenericInterfaces()[0];
 			Class<T> cls = (Class<T>)((ParameterizedType)type).getActualTypeArguments()[0];
 			
+			String countSql = "select count(*) from "+sql.toLowerCase().split("from")[1];
+			log.info("JDBC查询:"+countSql);
+			conn = JDBCUtil.getConnection();
+			conn.setAutoCommit(false);
+			
+			countps = conn.prepareStatement(countSql);
+			JDBCUtil.setPSObject(countps,vals);
+			long countlong = System.currentTimeMillis();
+			countrs = countps.executeQuery();
+			if(countrs.next()){
+				counts = countrs.getDouble(1);
+			}
+			log.info("COUNT:"+counts+"，耗时"+(float)(System.currentTimeMillis()-countlong)/1000+"秒JDBC查询:"+countSql);
+			
+			log.info("JDBC查询:"+sql);
+			ps=conn.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+			ps.setFetchSize(max);
+			JDBCUtil.setPSObject(ps, vals);
+			long qlong = System.currentTimeMillis();
+			rs = ps.executeQuery();
+			log.info("耗时"+(float)(System.currentTimeMillis()-qlong)/1000+"秒JDBC查询:"+sql);
+			
+			long opstart = System.currentTimeMillis();
+			long start = System.currentTimeMillis();
+			double cur=0;
 			while(rs.next()){
 				list.add(setT(cls,rs));
 				if(list.size()==max){//一个批次回调方法
+					float s1 = (float)(System.currentTimeMillis()-start)/1000;
+					long s2 = System.currentTimeMillis();
 					sqlCallback.run(list);
+					float scb = (float)(System.currentTimeMillis()-s2)/1000;
+					log.info(ProgrssUtil.progrss(cur, counts)+"获取"+list.size()+"条数据耗时"+s1+"秒，处理"+list.size()+"条数据耗时"+scb+"秒");
 					list.clear();
+					start = System.currentTimeMillis();
 				}
+				cur++;
 			}
 			if(list.size()>0){//最后一个批次回调方法
+				float s1 = (float)(System.currentTimeMillis()-start)/1000;
+				long s2 = System.currentTimeMillis();
 				sqlCallback.run(list);
+				float scb = (float)(System.currentTimeMillis()-s2)/1000;
+				log.info(ProgrssUtil.progrss(cur, counts)+"获取"+list.size()+"条数据耗时"+s1+"秒，处理"+list.size()+"条数据耗时"+scb+"秒");
 				list.clear();
+				start = System.currentTimeMillis();
 			}
+			log.info("处理"+cur+"条数据耗时"+(float)(System.currentTimeMillis()-opstart)/1000+"秒");
 			conn.commit();
 		} catch (Exception e) {
 			if(conn!=null){				
@@ -149,6 +183,7 @@ public class JDBCQueryHelper {
 			log.error("JDBC操作出错",e);
 			throw new SQLException("JDBC操作出错",e);
 		}finally{
+			JDBCUtil.free(countrs, null, countps);
 			JDBCUtil.free(rs, conn, ps);
 		}
 	}

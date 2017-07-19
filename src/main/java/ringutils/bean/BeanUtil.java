@@ -48,11 +48,11 @@ public class BeanUtil {
         	Method put = o.getClass().getDeclaredMethod("add",new Class[]{Object.class});
         	put.invoke(o, new Object[]{value});
         }else{//JavaBean赋值
-        	Field f = o.getClass().getDeclaredField(StringUtil.underline2capitalize(value+""));
+        	Field f = o.getClass().getDeclaredField(StringUtil.underline2capitalize(key));
         	if(f!=null){
         		f.setAccessible(true);
 				if(f.getType().isAssignableFrom(String.class)){
-					value = value + "";
+					value = value!=null?value + "":null;
 				}else if(f.getType().isAssignableFrom(Long.class)){
 					value = Long.valueOf(value+"");
 				}else if(f.getType().isAssignableFrom(Double.class)){

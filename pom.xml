@@ -12,7 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <org.apache.poi-version>3.14</org.apache.poi-version>
+    <org.apache.poi-version>3.13</org.apache.poi-version>
     <org.slf4j-version>1.7.12</org.slf4j-version>
     <commons.fileupload.version>1.2.2</commons.fileupload.version>
   </properties>
@@ -27,6 +27,11 @@
     </dependency>
     
 	<!-- POI Library -->
+	<dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi</artifactId>
+        <version>${org.apache.poi-version}</version>
+    </dependency>
     <dependency>
 	<groupId>org.apache.poi</groupId>
 		<artifactId>poi-ooxml</artifactId>
@@ -39,9 +44,14 @@
 	</dependency>
 	<dependency>
 		<groupId>org.apache.poi</groupId>
-		<artifactId>poi-examples</artifactId>
+		<artifactId>poi-scratchpad</artifactId>
 		<version>${org.apache.poi-version}</version>
 	</dependency>
+	<dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml-schemas</artifactId>
+        <version>${org.apache.poi-version}</version>
+    </dependency>
    	
    	<!-- Alibaba Library -->
    	<dependency>
@@ -135,7 +145,14 @@
 		<artifactId>freemarker</artifactId>
 		<version>2.3.23</version>
 	</dependency>
-	
+		
+	<!-- Hibernate4 -->
+	<dependency>
+		<groupId>org.hibernate</groupId>
+		<artifactId>hibernate-core</artifactId>
+		<version>4.1.6.Final</version>
+	</dependency>
+		
   </dependencies>
   
   

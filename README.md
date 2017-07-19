@@ -62,3 +62,21 @@ excelService.insertPage("日志",
 
 excelService.output("d:/table.xlsx");
 ```
+
+## 读取EXCEL文件
+```
+String path = "e://test.xlsx";
+		PoiReadService poiReadService = new PoiReadServiceImpl();
+		String[] fields = {"aa","bb","cc","...","dd"};
+		poiReadService.read(path, ".*", new ReadSheetHandler(POJO.class,fields,new ReadSheetHandlerCallback() {
+			@Override
+			public void callback(int rownum, String[] row, Object entity) throws Exception {
+				//...
+			}
+			
+			@Override
+			public void before(int rownum, short col, String formattedValue) throws Exception {
+				//...
+			}
+		}));
+```

@@ -28,6 +28,39 @@ import ringutils.jdbc.JDBCUtil;
 public class JDBCMetaHelper {
 	private static Logger log = LoggerFactory.getLogger(JDBCMetaHelper.class);
 
+
+	/**
+	 * 当前表字段
+	 * @param cls
+	 * @param tableName
+	 * @return
+	 * @throws SQLException 
+	 * @author ring
+	 * @date 2017年5月12日 上午12:07:18
+	 * @version V1.0
+	 */
+	public static String[] fields(String tableName) throws SQLException{
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<String> list = new ArrayList<String>();
+		try {
+			conn = JDBCUtil.getConnection();
+			DatabaseMetaData metaData = conn.getMetaData();
+			rs = metaData.getColumns(null, "%", tableName, "%");
+			while (rs.next()) {
+				list.add(rs.getString("COLUMN_NAME"));
+			}
+		} catch (Exception e) {
+			log.error("JDBC操作出错",e);
+			throw new SQLException("JDBC操作出错",e);
+		}finally{
+			JDBCUtil.free(rs, conn, ps);
+		}
+		return list.toArray(new String[]{});
+	}
+	
+	
 	/**
 	 * 数据库信息
 	 * @return
@@ -118,28 +151,6 @@ public class JDBCMetaHelper {
 	 * @date 2017年5月12日 上午12:07:18
 	 * @version V1.0
 	 */
-	public static <T> List<T> listColumns(Class<T> cls,String tableName) throws SQLException{
-		Connection conn = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		List<T> list = null;
-		try {
-			conn = JDBCUtil.getConnection();
-			DatabaseMetaData metaData = conn.getMetaData();
-			rs = metaData.getColumns(null, "%", tableName, "%");
-			list = new ArrayList<T>();
-			while (rs.next()) {
-				list.add(JDBCQueryHelper.setT(cls, rs));
-			}
-		} catch (Exception e) {
-			log.error("JDBC操作出错",e);
-			throw new SQLException("JDBC操作出错",e);
-		}finally{
-			JDBCUtil.free(rs, conn, ps);
-		}
-		return list;
-	}
-	
 	public static List<JSONObject> listColumns(String... tableNames) throws SQLException{
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -155,7 +166,7 @@ public class JDBCMetaHelper {
 				Map<String, List<JSONObject>> pkMap = new HashMap<String, List<JSONObject>>();
 				while(pkrs.next()){
 					JSONObject o = JDBCQueryHelper.setT(JSONObject.class, pkrs);
-					String key = o.getString("COLUMN_NAME");
+					String key = o.getString("COLUMN_NAME")+tableName;
 					List<JSONObject> olist = pkMap.get(key);
 					if(olist == null){
 						olist = new ArrayList<JSONObject>();
@@ -170,7 +181,7 @@ public class JDBCMetaHelper {
 				while (rs.next()) {
 					JSONObject o = JDBCQueryHelper.setT(JSONObject.class, rs);
 					o.put("COLUMN_INDEX",index++);
-					o.put("COLUMN_PK", pkMap.get(o.getString("COLUMN_NAME"))!=null?"是":"");
+					o.put("COLUMN_PK", pkMap.get(o.getString("COLUMN_NAME")+tableName)!=null?"YES":"");
 					list.add(o);
 				}
 			}

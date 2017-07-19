@@ -11,10 +11,13 @@ import java.util.List;
 public interface SQLCallback<T> {
 	/**
 	 * 10000条为一批次返回数据
-	 * @param list 
+	 * @param rowstart	开始行 
+	 * @param list 		数据集合
 	 * @author ring
 	 * @date 2017年3月31日 下午3:07:09
 	 * @version V1.0
+	 * @throws Exception 
 	 */
-	void run(List<T> list);
+	void run(List<T> list) throws Exception;
+	
 }

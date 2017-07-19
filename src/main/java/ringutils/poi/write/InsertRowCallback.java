@@ -1,4 +1,4 @@
-package ringutils.poi;
+package ringutils.poi.write;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -21,5 +21,5 @@ public interface InsertRowCallback {
 	 * @date 2017年3月15日 上午9:06:19
 	 * @version V1.0
 	 */
-	void cellCallback(Cell cell,Object value,Object data);
+	void cellCallback(int rownum,Cell cell,Object value,Object data);
 }

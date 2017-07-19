@@ -1,4 +1,4 @@
-package ringutils.poi;
+package ringutils.poi.write;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,7 +8,6 @@ import org.apache.poi.POIXMLProperties.CoreProperties;
 import org.apache.poi.hpsf.DocumentSummaryInformation;
 import org.apache.poi.hpsf.SummaryInformation;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import com.alibaba.fastjson.JSONObject;
@@ -19,7 +18,7 @@ import com.alibaba.fastjson.JSONObject;
  * @date 2017年3月14日 上午9:44:53
  * @version V1.0
  */
-public interface PoiExcelService {
+public interface PoiWriteService {
 	
 	/** HSSFWorkbook */
 	public final static String TYPE_HSSF = "HSSF";
@@ -68,14 +67,6 @@ public interface PoiExcelService {
 	
 	void output(String filepath) throws IOException;
 	
-	<T> List<T> read(int sheetindex,int[] cells,String[] fields,Class<T> cls) throws Exception;
-	<T> List<T> read(String sheetname,int[] cells,String[] fields,Class<T> cls) throws Exception;
-	<T> List<T> read(Sheet sheet,int[] cells,String[] fields,Class<T> cls) throws Exception;
-	
-	<T> List<T> read(int sheetindex,int[] cells,String[] fields,ReadRowCallback<T> callback) throws Exception;
-	<T> List<T> read(String sheetname,int[] cells,String[] fields,ReadRowCallback<T> callback) throws Exception;
-	<T> List<T> read(Sheet sheet,int[] cells,String[] fields,ReadRowCallback<T> callback) throws Exception;
-	
 	/**
 	 * 读取单元格数据
 	 * @param cell
@@ -92,5 +83,7 @@ public interface PoiExcelService {
 	public int getPageSize();
 	public void setPageSize(int pageSize);
 	public int getCount();
+	int getPageOutCount();
 	public Map<String, JSONObject> getSheetMap();
+
 }

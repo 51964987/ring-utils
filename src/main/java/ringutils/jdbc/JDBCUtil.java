@@ -21,7 +21,11 @@ public class JDBCUtil {
 	
 	/**
 	 * 根据properties文件路径获取输入流
-	 * @param propertiesPath
+	 * @param propertiesPath <br/>
+	 * driver = <br/>
+	 * url = <br/>
+	 * username = <br/>
+	 * password = <br/>
 	 * @return 
 	 * @author ring
 	 * @date 2017年5月11日 下午11:19:09

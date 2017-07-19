@@ -1,4 +1,4 @@
-package ringutils.poi.impl;
+package ringutils.poi.write.impl;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ringutils.poi.PoiExcelService;
+import ringutils.poi.write.PoiWriteService;
 
 /**
  * 创建PoiExcelService实例,Workbook有HSSFWorkbook,XSSFWorkbook实例。
@@ -27,9 +27,9 @@ import ringutils.poi.PoiExcelService;
  * @date 2017年3月30日 上午9:31:36
  * @version V1.0
  */
-public class PoiExcelServiceFactory{
+public class PoiWriteServiceFactory{
 	
-	private static Logger log = LoggerFactory.getLogger(PoiExcelServiceFactory.class);
+	private static Logger log = LoggerFactory.getLogger(PoiWriteServiceFactory.class);
 	
 	/**
 	 * 获取Workbook实例
@@ -39,15 +39,15 @@ public class PoiExcelServiceFactory{
 	 * @date 2017年3月14日 下午2:53:34
 	 * @version V1.0
 	 */
-	public static PoiExcelService getInstance(String type){
-		PoiExcelService service = new PoiExcelServiceImpl(); 
+	public static PoiWriteService getInstance(String type){
+		PoiWriteService service = new PoiWriteServiceImpl(); 
 		//根据类型获取实例
-		if(type==null||type.equalsIgnoreCase(PoiExcelService.TYPE_HSSF)){
+		if(type==null||type.equalsIgnoreCase(PoiWriteService.TYPE_HSSF)){
 			service.setWorkbook(new HSSFWorkbook());
-		}else if(type.equalsIgnoreCase(PoiExcelService.TYPE_XSSF)){
+		}else if(type.equalsIgnoreCase(PoiWriteService.TYPE_XSSF)){
 			service.setWorkbook(new XSSFWorkbook());
-		}else if(type.equalsIgnoreCase(PoiExcelService.TYPE_SXSSF)){
-			service.setWorkbook(new SXSSFWorkbook(PoiExcelService.ROW_ACCESS));
+		}else if(type.equalsIgnoreCase(PoiWriteService.TYPE_SXSSF)){
+			service.setWorkbook(new SXSSFWorkbook(PoiWriteService.ROW_ACCESS));
 		}
 		return service;
 	}
@@ -60,8 +60,8 @@ public class PoiExcelServiceFactory{
 	 * @date 2017年3月15日 上午11:24:34
 	 * @version V1.0
 	 */
-	public static List<PoiExcelService> getPoiExcel(HttpServletRequest request) {
-		List<PoiExcelService> list = new ArrayList<PoiExcelService>();
+	public static List<PoiWriteService> getPoiExcel(HttpServletRequest request) {
+		List<PoiWriteService> list = new ArrayList<PoiWriteService>();
 		try {
 			
 			DiskFileItemFactory factory = new DiskFileItemFactory();
@@ -105,8 +105,8 @@ public class PoiExcelServiceFactory{
 	 * @version V1.0
 	 * @throws IOException 
 	 */
-	public static PoiExcelService getPoiExcelService(String filename) throws IOException {
-		PoiExcelService service = null; 
+	public static PoiWriteService getPoiExcelService(String filename) throws IOException {
+		PoiWriteService service = null; 
 		InputStream is = null;
 		try {
 			is = new FileInputStream(filename);  //建立输入流
@@ -132,8 +132,8 @@ public class PoiExcelServiceFactory{
 	 * @date 2017年3月30日 上午11:03:52
 	 * @version V1.0
 	 */
-	public static PoiExcelService getPoiExcelService(String filename,InputStream is) throws IOException{
-		PoiExcelService service = new PoiExcelServiceImpl(); 
+	public static PoiWriteService getPoiExcelService(String filename,InputStream is) throws IOException{
+		PoiWriteService service = new PoiWriteServiceImpl(); 
 		filename = filename.toLowerCase();
 		if(filename.endsWith("xls")) {
 			service.setWorkbook(new HSSFWorkbook(is));

@@ -1,4 +1,4 @@
-package ringutils.poi.style;
+package ringutils.poi.write.style;
 
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.util.HSSFColor;
