@@ -1,5 +1,7 @@
 package ringutils.jdbc.impl;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSONArray;
@@ -168,4 +170,119 @@ public class SQLHelper{
 		sql.append(") ENGINE = MYISAM DEFAULT CHARACTER SET UTF8");
 		return sql.toString();
 	}
+	
+	/**
+	 * 临时表名称
+	 * @return 
+	 * @author ring
+	 * @date 2017年8月9日 下午3:53:52
+	 * @version V1.0
+	 */
+	public static String tmpTableName(){
+		return "temp_"+UUID.randomUUID().toString().substring(0, 8);
+	}
+	
+	/**
+	 * 复制表结构到新表，不带主键
+	 * @param targetTable
+	 * @param srcTable
+	 * @return 
+	 * @author ring
+	 * @date 2017年8月9日 下午3:56:01
+	 * @version V1.0
+	 */
+	public static String getCreateTableSql(String targetTable,String srcTable){
+		StringBuffer sb = new StringBuffer();
+		sb.append(" CREATE TABLE").append(targetTable);
+		sb.append(" SELECT * FROM  ").append(srcTable).append(" WHERE 1 = 2");
+		return sb.toString();
+	}
+	
+	/**
+	 * 复制表结构到新表，带主键
+	 * @param targetTable
+	 * @param srcTable
+	 * @return 
+	 * @author ring
+	 * @date 2017年8月9日 下午3:56:01
+	 * @version V1.0
+	 */
+	public static String getCreateLikeTableSql(String targetTable,String srcTable){
+		StringBuffer sb = new StringBuffer();
+		sb.append(" CREATE TABLE").append(targetTable);
+		sb.append(" LIKE  ").append(srcTable);
+		return sb.toString();
+	}
+	
+	/**
+	 * 更新表
+	 * @param targetTable	目标表
+	 * @param srcTable		源表
+	 * @param set			目标表更新的字段
+	 * @param otherSet		目标表更新的默认值字段
+	 * @param where			目标表与源表主键条件
+	 * @return 
+	 * @author ring
+	 * @date 2017年8月9日 下午4:08:35
+	 * @version V1.0
+	 */
+	public static String updateTableFromTable(String targetTable,String srcTable,String[] set,Map<String, Object> otherSet,String... where){
+		StringBuffer sb = new StringBuffer();
+		sb.append(" UPDATE ").append(targetTable+" t,").append(srcTable+" s SET ");
+		if(set!=null&&set.length>0){
+			for(int i=0;i<set.length;i++){
+				if(i>0){
+					sb.append(",");
+				}
+				sb.append(" t.").append(set[i]).append(" = ").append(" s.").append(set[i]);
+			}
+		}
+		if(otherSet!=null){
+			Iterator<String> keys = otherSet.keySet().iterator();
+			while(keys.hasNext()){
+				if(set!=null&&set.length>0){
+					sb.append(",");
+				}
+				String key = keys.next();
+				Object value = otherSet.get(key);
+				sb.append(" t.").append(key).append(" = ").append(" s.").append(value);
+			}
+		}
+		sb.append(" WHERE 1=1 ");
+		if(where!=null&&where.length>0){
+			for(int i=0;i<where.length;i++){
+				sb.append(" AND ").append(" t.").append(where[i]).append(" = ").append(" s.").append(where[i]);
+			}
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 插入表
+	 * @param targetTable	目标表
+	 * @param srcTable		源表
+	 * @param on			主键条件
+	 * @return 
+	 * @author ring
+	 * @date 2017年8月9日 下午4:14:34
+	 * @version V1.0
+	 */
+	public static String insertTableFromTable(String targetTable,String srcTable,String[] on){
+		StringBuffer sb = new StringBuffer(" INSERT INTO "+targetTable);
+		sb.append(" SELECT * FROM ").append(srcTable+" s ");
+		sb.append(" LEFT JOIN ").append(targetTable+" t ON ");
+		StringBuffer wheresb = new StringBuffer(" WHERE 1=1 ");
+		if(on!=null&&on.length>0){
+			for(int i=0;i<on.length;i++){
+				if(i>0){
+					sb.append("AND");
+				}
+				sb.append(" s.").append(on[i]).append(" = ").append(" t.").append(on[i]);
+				wheresb.append(" AND t.").append(on[i]).append(" IS NULL ");
+			}
+		}	
+		sb.append(wheresb);
+		return sb.toString();
+	}
+	
 }

@@ -1,7 +1,8 @@
-package ringutils.file.download;
+package ringutils.download;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +34,7 @@ public class DownloadUtil {
 			response.setContentType("multipart/form-data");  
 			//response.setContentType("application/x-msdownload");  
 			//2.设置文件头：最后一个参数是设置下载文件名(new String(filename.getBytes("utf-8"), "ISO-8859-1")解决中文被过滤问题)  
-			response.setHeader("Content-Disposition", "attachment;fileName="+new String(filename.getBytes("utf-8"), "ISO-8859-1"));
+			response.setHeader("Content-Disposition", "attachment;fileName="+URLEncoder.encode(filename,"utf-8"));
 			response.setCharacterEncoding("utf-8");
 			ServletOutputStream os = response.getOutputStream();
 			workbook.write(os);
@@ -66,7 +67,7 @@ public class DownloadUtil {
 			//1.设置文件ContentType类型，这样设置，会自动判断下载文件类型  
 			response.setContentType("multipart/form-data");  
 			//2.设置文件头：最后一个参数是设置下载文件名(假如我们叫a.pdf)  
-			response.setHeader("Content-Disposition", "attachment;fileName="+filename);
+			response.setHeader("Content-Disposition", "attachment;fileName="+URLEncoder.encode(filename,"utf-8"));
 			response.setCharacterEncoding("utf-8");
 			
 			File file = new File(pathname);

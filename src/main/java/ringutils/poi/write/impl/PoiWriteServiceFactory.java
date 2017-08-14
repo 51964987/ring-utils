@@ -39,6 +39,20 @@ public class PoiWriteServiceFactory{
 	 * @date 2017年3月14日 下午2:53:34
 	 * @version V1.0
 	 */
+	public static PoiWriteService getInstance(){
+		PoiWriteService service = new PoiWriteServiceImpl(); 
+		service.setWorkbook(new SXSSFWorkbook(PoiWriteService.ROW_ACCESS));
+		return service;
+	}
+	
+	/**
+	 * 获取Workbook实例
+	 * @param type
+	 * @return 
+	 * @author ring
+	 * @date 2017年3月14日 下午2:53:34
+	 * @version V1.0
+	 */
 	public static PoiWriteService getInstance(String type){
 		PoiWriteService service = new PoiWriteServiceImpl(); 
 		//根据类型获取实例

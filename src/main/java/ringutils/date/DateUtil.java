@@ -24,7 +24,7 @@ public class DateUtil {
 	 * @version V1.0
 	 */
 	public static Date parseDatetime(String dateStr) throws ParseException{
-		return DateUtils.parseDate(dateStr, "yyyy-MM-dd HH:mm:dd");
+		return DateUtils.parseDate(dateStr, "yyyy-MM-dd HH:mm:ss");
 	}
 	
 	/**

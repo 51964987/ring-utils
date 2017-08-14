@@ -9,6 +9,16 @@ import java.util.List;
  * @version V1.0
  */
 public interface SQLCallback<T> {
+	
+	/**
+	 * 查询SQL列字段
+	 * @param fields 
+	 * @author ring
+	 * @date 2017年8月9日 下午4:18:19
+	 * @version V1.0
+	 */
+	void setFields(String[] fields);
+	
 	/**
 	 * 10000条为一批次返回数据
 	 * @param rowstart	开始行 

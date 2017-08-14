@@ -7,8 +7,11 @@ import java.util.Map;
 import org.apache.poi.POIXMLProperties.CoreProperties;
 import org.apache.poi.hpsf.DocumentSummaryInformation;
 import org.apache.poi.hpsf.SummaryInformation;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -32,6 +35,10 @@ public interface PoiWriteService {
 	 */
 	public final static int ROW_ACCESS = 10000;
 	
+	SXSSFWorkbook getSXSSFWorkbook();
+	XSSFWorkbook getXSSFWorkbook();
+	HSSFWorkbook getHSSFWorkbook();
+	
 	/**
 	 * 用于获取和设置xls文件自定义属性信息
 	 * @return 
@@ -39,7 +46,7 @@ public interface PoiWriteService {
 	 * @date 2017年6月1日 下午2:33:57
 	 * @version V1.0
 	 */
-	DocumentSummaryInformation getHssfDocumentInformation();
+	DocumentSummaryInformation getDocumentInformationFromHSSF();
 	
 	/**
 	 * 用于获取和设置xls文件属性信息
@@ -48,7 +55,7 @@ public interface PoiWriteService {
 	 * @date 2017年6月1日 下午2:33:57
 	 * @version V1.0
 	 */
-	SummaryInformation getHssfInformation();
+	SummaryInformation getInformationFromHSSF();
 	/**
 	 * 用于获取和设置xlsx文件属性信息
 	 * @return 
@@ -56,7 +63,15 @@ public interface PoiWriteService {
 	 * @date 2017年6月1日 下午2:34:42
 	 * @version V1.0
 	 */
-	CoreProperties getXssfInformation();
+	CoreProperties getCorePropertiesFromXSSF();
+	/**
+	 * 用于获取和设置xlsx文件属性信息
+	 * @return 
+	 * @author ring
+	 * @date 2017年6月1日 下午2:34:42
+	 * @version V1.0
+	 */
+	CoreProperties getCorePropertiesFromSXSSF();
 	
 	<T> void insertPage(String sheetname,List<T> list,String[] fields,String[] titls,InsertRowCallback callback) throws Exception;
 	

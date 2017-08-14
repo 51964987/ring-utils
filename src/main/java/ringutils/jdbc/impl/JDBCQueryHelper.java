@@ -148,6 +148,14 @@ public class JDBCQueryHelper {
 			rs = ps.executeQuery();
 			log.info("耗时"+(float)(System.currentTimeMillis()-qlong)/1000+"秒JDBC查询:"+sql);
 			
+			//字段
+			int columncount = rs.getMetaData().getColumnCount();
+			String[] fields = new String[columncount];
+			for(int i=0;i<columncount;i++){
+				fields[i]=rs.getMetaData().getColumnLabel(i+1);
+			}
+			sqlCallback.setFields(fields );
+			
 			long opstart = System.currentTimeMillis();
 			long start = System.currentTimeMillis();
 			double cur=0;

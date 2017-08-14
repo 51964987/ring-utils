@@ -12,10 +12,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ringutils.string.StringUtil;
 
 @SuppressWarnings("unchecked")
 public class BeanUtil {
+	
+	private static Logger log = LoggerFactory.getLogger(BeanUtil.class);
 	
 	public static <T> T newInstance(Class<T> cls,Integer arrayLen) throws Exception{
 		if(cls.isArray()){//Array
@@ -48,8 +54,13 @@ public class BeanUtil {
         	Method put = o.getClass().getDeclaredMethod("add",new Class[]{Object.class});
         	put.invoke(o, new Object[]{value});
         }else{//JavaBean赋值
-        	Field f = o.getClass().getDeclaredField(StringUtil.underline2capitalize(key));
-        	if(f!=null){
+        	Field f = null;
+        	try {
+				f = o.getClass().getDeclaredField(StringUtil.underline2capitalize(key));
+			} catch (Exception e) {
+				log.warn(e.getMessage());
+			}
+        	if(f!=null&&StringUtils.isNotBlank(value+"")){
         		f.setAccessible(true);
 				if(f.getType().isAssignableFrom(String.class)){
 					value = value!=null?value + "":null;

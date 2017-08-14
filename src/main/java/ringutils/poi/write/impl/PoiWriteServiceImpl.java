@@ -46,18 +46,47 @@ public class PoiWriteServiceImpl implements PoiWriteService {
 	private int rownum;
 	private int pageOutCount;	//输出数据总数，不包括标题，用于insertPage方法
 	private Map<String, JSONObject> sheetMap = new HashMap<String, JSONObject>(); 
-	
-	public DocumentSummaryInformation getHssfDocumentInformation(){
-		((HSSFWorkbook)this.workbook).createInformationProperties();
-		return ((HSSFWorkbook)this.workbook).getDocumentSummaryInformation();
+
+	public SXSSFWorkbook getSXSSFWorkbook(){
+		if(this.workbook instanceof SXSSFWorkbook){
+			return (SXSSFWorkbook)this.workbook;
+		}
+		return null;
 	}
 	
-	public SummaryInformation getHssfInformation(){
-		return ((HSSFWorkbook)this.workbook).getSummaryInformation();
+	public XSSFWorkbook getXSSFWorkbook(){
+		if(this.workbook instanceof SXSSFWorkbook){
+			return ((SXSSFWorkbook)this.workbook).getXSSFWorkbook();
+		}
+		if(this.workbook instanceof XSSFWorkbook){
+			return (XSSFWorkbook)this.workbook;
+		}
+		return null;
 	}
-	public CoreProperties getXssfInformation(){
-		return ((XSSFWorkbook)this.workbook).getProperties().getCoreProperties();
+	
+	public HSSFWorkbook getHSSFWorkbook(){
+		if(this.workbook instanceof HSSFWorkbook){
+			return (HSSFWorkbook)this.workbook;
+		}
+		return null;
 	}
+	
+	public DocumentSummaryInformation getDocumentInformationFromHSSF(){
+		HSSFWorkbook wb = getHSSFWorkbook();
+		wb.createInformationProperties();
+		return wb.getDocumentSummaryInformation();
+	}
+	
+	public SummaryInformation getInformationFromHSSF(){
+		return getHSSFWorkbook().getSummaryInformation();
+	}
+	public CoreProperties getCorePropertiesFromXSSF(){
+		return getXSSFWorkbook().getProperties().getCoreProperties();
+	}
+	public CoreProperties getCorePropertiesFromSXSSF(){
+		return getSXSSFWorkbook().getXSSFWorkbook().getProperties().getCoreProperties();
+	}
+
 		
 	private Sheet createOrGetSheet(String sheetname){
 		Sheet sheet = null;
@@ -169,11 +198,13 @@ public class PoiWriteServiceImpl implements PoiWriteService {
 	        	}
 			}
 	        
+	        //由回调函数设值
+	        /*
 	        if(value != null && value instanceof java.sql.Timestamp){
 	        	value = DateFormatUtils.format((java.sql.Timestamp)value, "yyyy-MM-dd HH:mm:ss");
 	        }else if(value != null && value instanceof java.util.Date){
 	        	value = DateFormatUtils.format((java.util.Date)value, "yyyy-MM-dd HH:mm:ss");
-	        }
+	        }*/
 	        
 	        Cell cell = row.createCell(i);
 	        if(callback!=null){	        	
