@@ -28,6 +28,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
 import ringutils.poi.read.PoiReadService;
+import ringutils.poi.read.ReadSheetContentsHandler;
 
 public class PoiReadServiceImpl implements PoiReadService {
 	
@@ -36,7 +37,7 @@ public class PoiReadServiceImpl implements PoiReadService {
 	private List<String> listFilePath;
 	
 	@Override
-	public void read(String path, String sheetnamePattern, ReadSheetHandler sheetContentsHandler) throws Exception {
+	public void read(String path, String sheetnamePattern, ReadSheetContentsHandler sheetContentsHandler) throws Exception {
 		OPCPackage xlsxPackage = null;
 		long start = System.currentTimeMillis();
 		try {

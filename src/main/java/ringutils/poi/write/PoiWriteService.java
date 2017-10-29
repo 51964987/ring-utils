@@ -40,6 +40,19 @@ public interface PoiWriteService {
 	HSSFWorkbook getHSSFWorkbook();
 	
 	/**
+	 * 插入单元
+	 * @param sheetname
+	 * @param rownum
+	 * @param colnum
+	 * @param formattedValue 
+	 * @author ring
+	 * @date 2017年9月9日 下午2:15:35
+	 * @version V1.0
+	 */
+	public void insertCell(String sheetname,int rownum,int colnum,String formattedValue)throws Exception;
+	public void insertCell(String sheetname,int rownum,int colnum,String formattedValue,InsertRowCallback callback) throws Exception;
+	
+	/**
 	 * 用于获取和设置xls文件自定义属性信息
 	 * @return 
 	 * @author ring

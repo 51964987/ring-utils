@@ -86,7 +86,6 @@ public class PoiWriteServiceImpl implements PoiWriteService {
 	public CoreProperties getCorePropertiesFromSXSSF(){
 		return getSXSSFWorkbook().getXSSFWorkbook().getProperties().getCoreProperties();
 	}
-
 		
 	private Sheet createOrGetSheet(String sheetname){
 		Sheet sheet = null;
@@ -220,7 +219,28 @@ public class PoiWriteServiceImpl implements PoiWriteService {
 		
 	}
 	
-	public void insertRowByStringArray(Sheet sheet, String[] data,InsertRowCallback callback) throws Exception {
+	public void insertCell(String sheetname,int rownum,int colnum,String formattedValue) throws Exception{
+		insertCell(sheetname, rownum, colnum, formattedValue, null);
+	}
+	
+	public void insertCell(String sheetname,int rownum,int colnum,String formattedValue,InsertRowCallback callback) throws Exception{
+		Sheet sheet = createOrGetSheet(sheetname);
+		Row row = sheet.getRow(rownum)==null?sheet.createRow(rownum):sheet.getRow(rownum);
+		
+		if(callback != null){
+			callback.rowCallback(row);
+		}
+		
+		 Cell cell = row.getCell(colnum)==null?row.createCell(colnum):row.getCell(colnum);
+		 
+		 if(callback != null){
+			 callback.cellCallback(rownum, cell, formattedValue, null);
+		 }else{			 
+			 cell.setCellValue(formattedValue);
+		 }
+	}
+	
+ 	public void insertRowByStringArray(Sheet sheet, String[] data,InsertRowCallback callback) throws Exception {
 		//创建行
 		Row row = sheet.getRow(rownum)==null?sheet.createRow(rownum):sheet.createRow(++rownum);
 		if(callback!=null){//行回调

@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import ringutils.poi.read.impl.ReadSheetHandler;
-
 public interface PoiReadService {
 	
 	/**
@@ -18,7 +16,7 @@ public interface PoiReadService {
 	 * @date 2017年7月18日 上午11:17:53
 	 * @version V1.0
 	 */
-	void read(String path,String sheetnamePattern,ReadSheetHandler sheetContentsHandler)throws Exception;
+	void read(String path,String sheetnamePattern,ReadSheetContentsHandler sheetContentsHandler)throws Exception;
 	
 	/**
 	 * 删除文件

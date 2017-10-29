@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.net.URLEncoder;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,13 +29,23 @@ public class DownloadUtil {
 	 * @date 2017年3月31日 下午4:11:24
 	 * @version V1.0
 	 */
-	public void download(HttpServletResponse response,Workbook workbook,String filename) throws Exception{
+	public void download(HttpServletRequest request,HttpServletResponse response,Workbook workbook,String filename) throws Exception{
 		try {
 			//1.设置文件ContentType类型，这样设置，会自动判断下载文件类型  
 			response.setContentType("multipart/form-data");  
 			//response.setContentType("application/x-msdownload");  
+			
+			String info = "file download success："+filename;
+			
+			String agent = request.getHeader("USER-AGENT");
+			if(agent != null && agent.toLowerCase().indexOf("firefox") > 0){
+				filename = new String(filename.getBytes("utf-8"),"ISO-8859-1");
+			}else{
+				filename = URLEncoder.encode(filename,"utf-8");
+			}
+			
 			//2.设置文件头：最后一个参数是设置下载文件名(new String(filename.getBytes("utf-8"), "ISO-8859-1")解决中文被过滤问题)  
-			response.setHeader("Content-Disposition", "attachment;fileName="+URLEncoder.encode(filename,"utf-8"));
+			response.setHeader("Content-Disposition", "attachment;fileName="+filename);
 			response.setCharacterEncoding("utf-8");
 			ServletOutputStream os = response.getOutputStream();
 			workbook.write(os);
@@ -44,11 +55,11 @@ public class DownloadUtil {
 			os.close();  
 			os=null;  
 			response.flushBuffer();  
-			log.info("file download success");
+			log.info(info);
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error("下载失败："+e.getMessage(),e);
-			throw new Exception("下载失败",e);
+			log.error("file download error："+e.getMessage(),e);
+			throw new Exception("file download error",e);
 		}		
 	}
 	
@@ -62,12 +73,22 @@ public class DownloadUtil {
 	 * @version V1.0
 	 * @throws Exception 
 	 */
-	public void download(HttpServletResponse response,String pathname,String filename) throws Exception{
+	public void download(HttpServletRequest request,HttpServletResponse response,String pathname,String filename) throws Exception{
 		try {
 			//1.设置文件ContentType类型，这样设置，会自动判断下载文件类型  
 			response.setContentType("multipart/form-data");  
+
+			String info = "file download success："+filename;
+			
+			String agent = request.getHeader("USER-AGENT");
+			if(agent != null && agent.toLowerCase().indexOf("firefox") > 0){
+				filename = new String(filename.getBytes("utf-8"),"ISO-8859-1");
+			}else{
+				filename = URLEncoder.encode(filename,"utf-8");
+			}
+			
 			//2.设置文件头：最后一个参数是设置下载文件名(假如我们叫a.pdf)  
-			response.setHeader("Content-Disposition", "attachment;fileName="+URLEncoder.encode(filename,"utf-8"));
+			response.setHeader("Content-Disposition", "attachment;fileName="+filename);
 			response.setCharacterEncoding("utf-8");
 			
 			File file = new File(pathname);
@@ -90,12 +111,12 @@ public class DownloadUtil {
 			    inputStream.close();  
 			    out.close();  
 			    out.flush();  
-				log.info("file download success");
+				log.info(info);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			log.error("下载失败："+e.getMessage(),e);
-			throw new Exception("下载失败",e);
+			log.error("file download error："+e.getMessage(),e);
+			throw new Exception("file download error",e);
 		}
 	}
 }

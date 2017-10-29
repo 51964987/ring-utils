@@ -23,8 +23,20 @@ public class DateUtil {
 	 * @date 2017年4月18日 下午11:22:57
 	 * @version V1.0
 	 */
-	public static Date parseDatetime(String dateStr) throws ParseException{
-		return DateUtils.parseDate(dateStr, "yyyy-MM-dd HH:mm:ss");
+	public static Date yyyyMMddHHmmss(String yyyyMMddHHmmss) throws ParseException{
+		return DateUtils.parseDate(yyyyMMddHHmmss, "yyyyMMddHHmmss");
+	}
+
+	/**
+	 * 将日期类型转换为yyyyMMddHHmmss字符串
+	 * @param date
+	 * @return 
+	 * @author ring
+	 * @date 2017年4月6日 下午3:24:54
+	 * @version V1.0
+	 */
+	public static String yyyyMMddHHmmss() {
+		return DateFormatUtils.format(new Date(),"yyyyMMddHHmmss");
 	}
 	
 	/**
@@ -36,20 +48,8 @@ public class DateUtil {
 	 * @date 2017年4月18日 下午11:22:57
 	 * @version V1.0
 	 */
-	public static Date parseYyyyMMdd(String dateStr) throws ParseException{
-		return DateUtils.parseDate(dateStr, "yyyyMMdd");
-	}
-	
-	/**
-	 * 将日期类型转换为yyyyMMdd字符串
-	 * @param date
-	 * @return 
-	 * @author ring
-	 * @date 2017年4月6日 下午3:24:54
-	 * @version V1.0
-	 */
-	public static String formatYyyyMMdd() {
-		return formatYyyyMMdd(new Date());
+	public static Date yyyyMMdd(String yyyyMMdd) throws ParseException{
+		return DateUtils.parseDate(yyyyMMdd, "yyyyMMdd");
 	}
 	
 	/**
@@ -60,35 +60,20 @@ public class DateUtil {
 	 * @date 2017年4月6日 下午3:24:54
 	 * @version V1.0
 	 */
-	public static String formatYyyyMMdd(Date date) {
-		if(date == null) {return "";}
-		return DateFormatUtils.format(date,"yyyyMMdd");
+	public static String yyyyMMdd() {
+		return DateFormatUtils.format(new Date(),"yyyyMMdd");
 	}
 	
 	/**
-	 * 将日期类型转换为yyyy-MM-dd HH:mm:ss字符串
-	 * @param date
-	 * @return 
+	 * 将字符串转换为日期类型
+	 * @param dateStr	yyyyMMddHHmmss|yyyyMMdd
+	 * @return
+	 * @throws ParseException 
 	 * @author ring
-	 * @date 2017年4月6日 下午3:24:54
+	 * @date 2017年10月25日 下午8:17:44
 	 * @version V1.0
 	 */
-	public static String formatDatetime() {
-		return formatDatetime(new Date());
+	public static Date parseDate(String dateStr) throws ParseException{
+		return DateUtils.parseDate(dateStr, new String[]{"yyyyMMddHHmmss","yyyyMMdd"});
 	}
-	
-	/**
-	 * 将日期类型转换为yyyy-MM-dd HH:mm:ss字符串
-	 * @param date
-	 * @return 
-	 * @author ring
-	 * @date 2017年4月6日 下午3:24:54
-	 * @version V1.0
-	 */
-	public static String formatDatetime(Date date) {
-		if(date == null) {return "";}
-		return DateFormatUtils.format(date,"yyyy-MM-dd HH:mm:ss");
-	}
-	
-	
 }
