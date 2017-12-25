@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import ringutils.jdbc.JDBCUtil;
+import ringutils.string.StringUtil;
 
 /**
  * 用于获取数据库、数据表等元数据信息
@@ -160,7 +161,7 @@ public class JDBCMetaHelper {
 		try {
 			conn = JDBCUtil.getConnection();
 			DatabaseMetaData metaData = conn.getMetaData();
-			
+			Map<String, JSONObject> types = mysqlType2Map();
 			for(String tableName : tableNames){				
 				pkrs = metaData.getPrimaryKeys(conn.getCatalog(), null, tableName);
 				Map<String, List<JSONObject>> pkMap = new HashMap<String, List<JSONObject>>();
@@ -182,6 +183,9 @@ public class JDBCMetaHelper {
 					JSONObject o = JDBCQueryHelper.setT(JSONObject.class, rs);
 					o.put("COLUMN_INDEX",index++);
 					o.put("COLUMN_PK", pkMap.get(o.getString("COLUMN_NAME")+tableName)!=null?"YES":"");
+					o.put("FIELD_NAME", StringUtil.underline2capitalize(o.getString("COLUMN_NAME").toLowerCase()));
+					o.put("FIELD_TYPE", types.get(o.getString("TYPE_NAME").toLowerCase()).getString("type"));
+					o.put("FIELD_CLASS", types.get(o.getString("TYPE_NAME").toLowerCase()).getString("class"));
 					list.add(o);
 				}
 			}
@@ -318,7 +322,7 @@ public class JDBCMetaHelper {
 		map.put("numeric", decimal);
 		
 		JSONObject real = new JSONObject();
-		decimal.put("type", "float");
+		decimal.put("type", "BigDecimal");
 		map.put("real", real);
 
 		JSONObject varchar = new JSONObject();
@@ -335,7 +339,7 @@ public class JDBCMetaHelper {
 
 		JSONObject date = new JSONObject();
 		date.put("type", "Date");
-		date.put("class", "java.sql.Date");
+		date.put("class", "java.util.Date");
 		map.put("date", date);
 		map.put("year", date);
 
@@ -345,8 +349,8 @@ public class JDBCMetaHelper {
 		map.put("time", time);
 		
 		JSONObject datetime = new JSONObject();
-		datetime.put("type", "Timestamp");
-		datetime.put("class", "java.sql.Timestamp");
+		datetime.put("type", "Date");
+		datetime.put("class", "java.util.Date");
 		map.put("datetime", datetime);
 		map.put("timestamp", datetime);
 		map.put("smalldatetime", datetime);

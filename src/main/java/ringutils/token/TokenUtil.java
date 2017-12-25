@@ -16,8 +16,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.Claim;
 
-import ringutils.encrypt.MD5Util;
-
 /**
  * JWT由头部、载荷和签名组成
  * 头部：{"type":"JWT","alg":"HS256"}
@@ -29,7 +27,7 @@ import ringutils.encrypt.MD5Util;
  */
 public class TokenUtil {
 	
-	private static Logger log = LoggerFactory.getLogger(MD5Util.class);
+	private static Logger log = LoggerFactory.getLogger(TokenUtil.class);
 	
 	/**
 	 * 加密代码

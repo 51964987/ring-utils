@@ -36,20 +36,65 @@ public class JDBCUtil {
 	}
 	
 	/**
-	 * 初始化参数
-	 * @param inStream 
+	 * 初始化
+	 * @param propertiesPath	properties文件路径
+	 * @param driverMapping		driver映射名称
+	 * @param urlMapping		url映射名称
+	 * @param usernameMapping	username映射名称
+	 * @param passwordMapping 	password映射名称
 	 * @author ring
-	 * @date 2017年5月11日 下午11:17:13
+	 * @date 2017年12月21日 上午10:11:26
 	 * @version V1.0
 	 */
-	public static void initPorperties(InputStream inStream){
+	public static void init(String propertiesPath,String driverMapping,
+			String urlMapping,String usernameMapping,String passwordMapping){
+		InputStream inStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(propertiesPath);
+		init(inStream, driverMapping, urlMapping, usernameMapping, passwordMapping);
+	}
+	
+	/**
+	 * 初始化
+	 * @param inStream			properties输入流
+	 * @param driverMapping		driver映射名称
+	 * @param urlMapping		url映射名称
+	 * @param usernameMapping	username映射名称
+	 * @param passwordMapping 	password映射名称
+	 * @author ring
+	 * @date 2017年12月21日 上午10:14:20
+	 * @version V1.0
+	 */
+	public static void init(InputStream inStream,String driverMapping,
+			String urlMapping,String usernameMapping,String passwordMapping){
 		try {
 			Properties p = new Properties();
 			p.load(inStream);
-			driver = p.getProperty("driver");
-			url = p.getProperty("url");
-			username = p.getProperty("username");
-			password = p.getProperty("password");
+			driver = p.getProperty(driverMapping);
+			url = p.getProperty(urlMapping);
+			username = p.getProperty(usernameMapping);
+			password = p.getProperty(passwordMapping);
+			init(driver, url, username, password);
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error(e.getMessage(),e);
+		}
+	}
+	
+	/**
+	 * 初始化
+	 * @param driverstr
+	 * @param urlstr
+	 * @param usernamestr
+	 * @param passwordstr 
+	 * @author ring
+	 * @date 2017年12月21日 上午10:14:50
+	 * @version V1.0
+	 */
+	public static void init(String driverstr,String urlstr,String usernamestr,String passwordstr){
+		try {
+			driver = driverstr;
+			url = urlstr;
+			username = usernamestr;
+			password = passwordstr;
 			Class.forName(driver);//装载驱动
 		} catch (Exception e) {
 			e.printStackTrace();
